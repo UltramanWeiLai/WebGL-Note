@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL</title>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas')
+        const ctx = canvas.getContext('webgl')
+
+        // 顶点着色器
+        const vertexShaderSource = `
+            void main () {
+                // 要绘制点的坐标
+                // 这里的入参分别代表 x, y, z, w
+                // 其中 w 代表的是齐次坐标
+                // 下面的参数最终可以理解成 x/w, y/w, z/w
+                gl_Position = vec4(0.0, 0.0, 0.0, 1.0); 
+                gl_PointSize = 100.0; // 点的大小
+            }
+        `
+
+        // 片元着色器
+        const fragmentShaderSource = `
+            void main () {
+                // 要绘制的颜色信息
+                // 这里的入参分别代表 r, g, b, a
+                gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0); 
+            }
+        `
+
+        // 创建着色器
+        const vertexShader = ctx.createShader(ctx.VERTEX_SHADER)
+        const fragmentShader = ctx.createShader(ctx.FRAGMENT_SHADER)
+
+        // 指定着色器的代码
+        ctx.shaderSource(vertexShader, vertexShaderSource)
+        ctx.shaderSource(fragmentShader, fragmentShaderSource)
+
+        // 编译着色器
+        ctx.compileShader(vertexShader)
+        ctx.compileShader(fragmentShader)
+
+        // 创建程序对象
+        const program = ctx.createProgram()
+
+        // 绑定着色器
+        ctx.attachShader(program, vertexShader)
+        ctx.attachShader(program, fragmentShader)
+
+        // 将顶点着色器和片元着色器连接成一个可执行的程序
+        ctx.linkProgram(program)
+
+        // 将指定的程序对象设置为当前绘制的程序，可以理解为注册的意思？
+        ctx.useProgram(program)
+
+        // 执行绘制
+        // 入参分别是 要绘制的基本图元类型、从哪个顶点开始绘制、要绘制的顶点数量
+        ctx.drawArrays(ctx.POINTS, 0, 1)
+    </script>
+</body>
+</html>
