@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL</title>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas')
+        const ctx = canvas.getContext('webgl')
+
+        const vertexShaderSource = `
+            attribute vec4 aPosition;
+            void main () {
+                gl_Position = aPosition; 
+                gl_PointSize = 100.0;
+            }
+        `
+
+        const fragmentShaderSource = `
+            precision mediump float;
+            uniform vec4 uColor;
+            void main () {
+                gl_FragColor = uColor; 
+            }
+        `
+
+        const vertexShader = ctx.createShader(ctx.VERTEX_SHADER)
+        const fragmentShader = ctx.createShader(ctx.FRAGMENT_SHADER)
+
+        ctx.shaderSource(vertexShader, vertexShaderSource)
+        ctx.shaderSource(fragmentShader, fragmentShaderSource)
+
+        ctx.compileShader(vertexShader)
+        ctx.compileShader(fragmentShader)
+
+        const program = ctx.createProgram()
+
+        ctx.attachShader(program, vertexShader)
+        ctx.attachShader(program, fragmentShader)
+
+        ctx.linkProgram(program)
+        ctx.useProgram(program)
+
+        // 使用 getAttribLocation 方法获取某个 程序对象 中的 存储地址
+        // 入参为：程序对象、想要获取的存储地址 attribute 变量名称
+        const aPosition = ctx.getAttribLocation(program, 'aPosition')
+        // 使用方法和 getAttribLocation 一样
+        const uColor = ctx.getUniformLocation(program, 'uColor')
+        
+        // 绘制动画
+        let x = -1
+        setInterval(() => {
+            x += 0.1
+            x > 1.0 && (x = -1)
+            // 同类型方法一共有：vertexAttrib1f、vertexAttrib2f、vertexAttrib3f、vertexAttrib4f
+            // xf 即代表其接受的数据参数个数，类比 vec4 数据类型例如：vec4(入参1, 入参2, 入参3, 入参4)
+            // vertexAttrib1f(入参1)、vertexAttrib2f(入参1, 入参2)、vertexAttrib3f(入参1, 入参2, 入参3)、vertexAttrib4f(...)
+            ctx.vertexAttrib1f(aPosition, x) // 修改 attribute 的值
+            // 使用方法和 vertexAttrib4f 一样，同样也有 1f 2f 3f 4f 四个同类方法
+            ctx.uniform4f(uColor, Math.random(), Math.random(), Math.random(), 1.0)
+            ctx.drawArrays(ctx.POINTS, 0, 1) // 重新绘制
+        }, 200)
+    </script>
+</body>
+</html>
