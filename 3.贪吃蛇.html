@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>webgl</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    canvas {
+      display: block;
+      margin: 200px auto;
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="webgl" width="500" height="500"></canvas>
+  <script type="module">
+    import { initShader } from './lib.js'
+
+    const canvas = document.getElementById('webgl')
+    const gl = canvas.getContext('webgl')
+
+    const vertex = `
+      attribute vec4 aPosition;
+      void main() {
+        gl_Position = aPosition;
+        gl_PointSize = 10.0;
+      }
+    `
+
+    const fragment = `
+      void main() {
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      }
+    `
+
+    const program = initShader(gl, vertex, fragment)
+    const aPosition = gl.getAttribLocation(program, 'aPosition')
+
+    
+    const points = [{ x: 0, y: 0 }] // 贪吃蛇点位数组
+    const random = [] // 随机食物数组
+
+    let originSpeed = 0.01 // 初始速度
+    let currSpeed = originSpeed // 当前速度
+
+    let direction = 'x' // 行进方向
+    let baseArea = 1.5
+
+    // 键盘按下事件，监听 上下左右 并修改行进方向和速度
+    window.addEventListener('keydown', (e) => {
+      switch(event.keyCode) {
+        case 37:
+          direction = 'x'
+          currSpeed = -originSpeed
+          break
+        case 38:
+          direction = 'y'
+          currSpeed = originSpeed
+          break
+        case 39:
+          direction = 'x'
+          currSpeed = originSpeed
+          break
+        case 40:
+          direction = 'y'
+          currSpeed = -originSpeed
+          break
+      }
+    })
+
+    let timer
+    // 开始函数
+    function start() {
+      timer = setInterval(() => {
+
+        // 判断是否出界
+        if (points[0].x >= 1 || points[0].x <= -1 || points[0].y >= 1 || points[0].y <= -1) {
+          clearInterval(timer)
+          alert('Game Over')
+          restart()
+          return
+        }
+        
+        // 判断是否有食物被贪吃蛇吃掉
+        for (let i = 0; i < random.length; i++) {
+          if (
+            points[0].x > random[i].x - baseArea * originSpeed &&
+            points[0].x < random[i].x + baseArea * originSpeed &&
+            points[0].y > random[i].y - baseArea * originSpeed &&
+            points[0].y < random[i].y + baseArea * originSpeed
+          ) {
+            random.splice(i, 1)
+            points.push({ x: random[i].x, y: random[i].y })
+            if (random.length === 0) refresh = 0
+          }
+        }
+
+        // 执行创建食物函数
+        createRandom()
+
+        // 蛇身移动，蛇头根据行进方向和速度进行移动，蛇身数据依次等于前一个，并渲染贪吃蛇
+        let prex = 0
+        let prey = 0
+        for (let i = 0; i < points.length; i++) {
+          if (i === 0) {
+            prex = points[0].x
+            prey = points[0].y
+            points[0][direction] += currSpeed
+          } else {
+            const tempx = points[i].x
+            const tempy = points[i].y
+            points[i].x = prex
+            points[i].y = prey
+            prex = tempx
+            prey = tempy
+          }
+
+          gl.vertexAttrib3f(aPosition, points[i].x, points[i].y, 0.0)
+          gl.drawArrays(gl.POINTS, 0, 1)
+        }
+
+        // 渲染食物
+        for (let i = 0; i < random.length; i++) {
+          gl.vertexAttrib3f(aPosition, random[i].x, random[i].y, 0.0)
+          gl.drawArrays(gl.POINTS, 0, 1)
+        }
+      }, 100)
+    }
+
+    // 重新开始
+    function restart() {
+      points[0] = { x: 0, y: 0 }
+      currSpeed = originSpeed
+      direction = 'x'
+      start()
+    }
+
+    let refresh = 0
+    // 每五秒创建一个食物
+    function createRandom() {
+      if (refresh <= 0) {
+        random.push({ x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 })
+        refresh = 5000
+      } else {
+        refresh -= 100
+      }
+    }
+
+    start()
+  </script>
+</body>
+</html>

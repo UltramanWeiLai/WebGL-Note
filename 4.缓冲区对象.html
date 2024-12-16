@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>webgl</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    canvas {
+      display: block;
+      margin: 200px auto;
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="webgl" width="500" height="500"></canvas>
+  <script src="./lib.js"></script>
+  <script>
+    const canvas = document.getElementById('webgl')
+    const gl = canvas.getContext('webgl')
+
+    const vertex = `
+      attribute vec4 aPosition;
+      void main() {
+        gl_Position = aPosition;
+        gl_PointSize = 10.0;
+      }
+    `
+
+    const fragment = `
+      void main() {
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      }
+    `
+
+    const program = initShader(gl, vertex, fragment)
+    const aPosition = gl.getAttribLocation(program, 'aPosition')
+
+    const points = new Float32Array([-0.5, -0.5, 0.5, -0.5, 0.5, 0.5])
+
+    const buffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+    gl.bufferData(gl.ARRAY_BUFFER, points, gl.STATIC_DRAW)
+
+    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0)
+    gl.enableVertexAttribArray(aPosition)
+    gl.drawArrays(gl.POINTS, 0, 3)
+  </script>
+</body>
+</html>
