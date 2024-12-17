@@ -21,15 +21,16 @@
   <script src="./lib.js"></script>
   <script>
     // import { initShader } from './lib.js'
-
+    
     const canvas = document.getElementById('webgl')
     const gl = canvas.getContext('webgl')
 
     const vertex = `
       attribute vec4 aPosition;
+      attribute float aPointSize;
       void main() {
         gl_Position = aPosition;
-        gl_PointSize = 10.0;
+        gl_PointSize = aPointSize;
       }
     `
 
@@ -44,28 +45,32 @@
 
     // 获取 attribute 变量的存储位置
     const aPosition = gl.getAttribLocation(program, 'aPosition')
+    const aPointSize = gl.getAttribLocation(program, 'aPointSize')
 
     // 顶点坐标数据
     const points = new Float32Array([
-      -0.5, -0.5,
-      0.5, -0.5,
-      0.5, 0.5
+      -0.5, -0.5, 10.0,
+      0.5, -0.5, 20.0,
+      0.5, 0.5, 30.0
     ])
 
     // 创建缓冲区对象
     const buffer = gl.createBuffer()
-
-    // 绑定缓冲区对象
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-
-    // 向缓冲区对象写入数据
     gl.bufferData(gl.ARRAY_BUFFER, points, gl.STATIC_DRAW)
 
-    // 将缓冲区对象分配给 aPosition 变量，每次从缓冲区对象中读取两个数据，数据类型为浮点型，不进行归一化处理，数据无间隔，不偏移
-    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0)
+    // 获取每个元素所占的字节数，因为是浮点型数据，所以是 4 个字节
+    const bytes = points.BYTES_PER_ELEMENT
 
-    // 激活 aPosition 变量
-    gl.enableVertexAttribArray(aPosition)
+    // 将缓冲区对象分配给 a_Position 变量, 一次使用两个数据，浮点型数据，不进行归一化处理，数据间隔为 3 个元素，从 0 开始
+    // 3 个元素为一组，每组的第一个、第二个元素为坐标，第三个元素为大小，一个元素所占的字节是 BYTES_PER_ELEMENT，所以是 3 * BYTES_PER_ELEMENT
+    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 3 * bytes, 0) 
+    gl.enableVertexAttribArray(aPosition) // 激活 a_Position 变量
+
+    // 将缓冲区对象分配给 aPointSize 变量，一次使用一个数据，浮点型数据，不进行归一化处理，数据间隔为 3 个元素，从 2 开始
+    // 3 个元素为一组，每组的第三个元素为大小，所以需要跳过前两个元素，读取第三个元素，所以是 2 * BYTES_PER_ELEMENT
+    gl.vertexAttribPointer(aPointSize, 1, gl.FLOAT, false, 3 * bytes, 2 * bytes)
+    gl.enableVertexAttribArray(aPointSize) // 激活 aPointSize 变量
 
     // 绘制
     gl.drawArrays(gl.POINTS, 0, 3)

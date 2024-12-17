@@ -7,7 +7,7 @@
  * @param {string} fragmentShaderSource - 片元着色器源码
  * @returns {WebGLProgram} - 创建的着色器程序对象
  */
-export function initShader(gl, vertexShaderSource, fragmentShaderSource) {
+function initShader(gl, vertexShaderSource, fragmentShaderSource) {
   var vertexShader = gl.createShader(gl.VERTEX_SHADER);
   var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
 

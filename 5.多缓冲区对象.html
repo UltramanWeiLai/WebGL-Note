@@ -21,15 +21,16 @@
   <script src="./lib.js"></script>
   <script>
     // import { initShader } from './lib.js'
-
+    
     const canvas = document.getElementById('webgl')
     const gl = canvas.getContext('webgl')
 
     const vertex = `
       attribute vec4 aPosition;
+      attribute float aPointSize;
       void main() {
         gl_Position = aPosition;
-        gl_PointSize = 10.0;
+        gl_PointSize = aPointSize;
       }
     `
 
@@ -44,6 +45,11 @@
 
     // 获取 attribute 变量的存储位置
     const aPosition = gl.getAttribLocation(program, 'aPosition')
+    const aPointSize = gl.getAttribLocation(program, 'aPointSize')
+
+    //
+    // 从缓冲区对象中读取 坐标信息 并使用
+    // ----------------------------------------
 
     // 顶点坐标数据
     const points = new Float32Array([
@@ -52,20 +58,30 @@
       0.5, 0.5
     ])
 
-    // 创建缓冲区对象
+    // 创建缓冲区对象并进行绑定以及写入数据
     const buffer = gl.createBuffer()
-
-    // 绑定缓冲区对象
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-
-    // 向缓冲区对象写入数据
     gl.bufferData(gl.ARRAY_BUFFER, points, gl.STATIC_DRAW)
 
-    // 将缓冲区对象分配给 aPosition 变量，每次从缓冲区对象中读取两个数据，数据类型为浮点型，不进行归一化处理，数据无间隔，不偏移
+    // 将缓冲区对象分配给 a_Position 变量，并激活 a_Position 变量
     gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0)
-
-    // 激活 aPosition 变量
     gl.enableVertexAttribArray(aPosition)
+
+    //
+    // 从缓冲区对象中读取 大小信息 并使用
+    // ----------------------------------------
+
+    // 顶点的大小数据
+    const sizes = new Float32Array([10.0, 20.0, 30.0])
+
+    // 创建缓冲区对象并进行绑定以及写入数据
+    const sizeBuffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuffer)
+    gl.bufferData(gl.ARRAY_BUFFER, sizes, gl.STATIC_DRAW)
+
+    // 将缓冲区对象分配给 aPointSize 变量，并激活 aPointSize 变量
+    gl.vertexAttribPointer(aPointSize, 1, gl.FLOAT, false, 0, 0)
+    gl.enableVertexAttribArray(aPointSize)
 
     // 绘制
     gl.drawArrays(gl.POINTS, 0, 3)
